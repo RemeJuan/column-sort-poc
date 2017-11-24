@@ -13,6 +13,7 @@ const Form = styled.form`
 const AddColumnForm = ({ atoms, addItem, ...rest }) => (
   <Form onSubmit={addItem} {...rest}>
     <select required>
+      {console.log(atoms)}
       <option value="">Make Selection</option>
       {atoms.map(aa => (
         <option key={aa} value={aa}>

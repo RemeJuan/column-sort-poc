@@ -1,21 +1,21 @@
 import React from 'react';
 import styled from 'styled-components';
-import SortableTree from 'react-sortable-tree';
 
 import DynamicTable from '../table';
 import Form from './form';
 import ActionPanel from './action-panel';
+import SortableComponent from './sortable-tree';
 
 const PageContainer = styled.section`
   display: flex;
   flex-direction: row;
   flex: 1 1 auto;
-  min-height: 100vh;
+  min-height: calc(100vh - 30px);
 `;
 
-const TreeContainer = styled.div`height: 85vh;`;
-
 const AtomForm = styled(Form)`height: 15vh;`;
+
+const Delete = styled.div`height: 5vh;`;
 
 const Page = ({
   availableAtoms,
@@ -28,20 +28,18 @@ const Page = ({
   manageActive,
 }) => (
   <PageContainer>
-    <ActionPanel isOpen={manageActive} onClickHandler={togglePanel}>
+    <ActionPanel isOpen onClickHandler={togglePanel}>
       <AtomForm atoms={availableAtoms} addItem={addItem} />
-      <TreeContainer>
-        <SortableTree
-          treeData={treeData}
-          onChange={treeData => treeUpdate(treeData)}
-        />
-      </TreeContainer>
+      <SortableComponent treeData={treeData} treeUpdate={treeUpdate} />
+      <Delete>Drop To Delete</Delete>
     </ActionPanel>
-    <DynamicTable
-      headings={treeData.map(d => d.title)}
-      displayColumns={treeData.map(d => d.atom)}
-      data={sourceData}
-    />
+    {treeData.length > 0 && (
+      <DynamicTable
+        headings={treeData.map(d => d.title)}
+        displayColumns={treeData.map(d => d.atom)}
+        data={sourceData}
+      />
+    )}
   </PageContainer>
 );
 

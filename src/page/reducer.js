@@ -14,6 +14,7 @@ const initialState = {
   tableFields: [],
   treeData: [],
   manageActive: false,
+  testing: new Set(),
 };
 
 function buildSelect(data) {
@@ -49,15 +50,25 @@ export default function pageReducer(state = initialState, action) {
         ...state,
         tableFields: mergedData,
         treeData: buildTreeData(mergedData),
+        availableAtoms: state.availableAtoms.filter(
+          a => a !== action.data.atom
+        ),
       };
     }
 
-    case REORDER_TREE:
+    case REORDER_TREE: {
+      const removedItem = state.treeData.filter(
+        f => !action.data.includes(f)
+      )[0];
+      console.log('removed item', removedItem);
       return {
         ...state,
         treeData: action.data,
+        availableAtoms: removedItem
+          ? state.availableAtoms.push(removedItem.atom)
+          : state.availableAtoms,
       };
-
+    }
     case TOGGLE_MANAGE_PANEL:
       return {
         ...state,
