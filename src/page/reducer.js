@@ -141,7 +141,7 @@ export default function pageReducer(state = initialState, action) {
       const sortColumns = [...state.sortQuery, { ...action.data }];
       return {
         ...state,
-        tableData: arrayMultiSort(state.sourceData, sortColumns),
+        tableData: [...arrayMultiSort(state.sourceData, sortColumns)],
       };
     }
 
