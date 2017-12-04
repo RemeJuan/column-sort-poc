@@ -44,20 +44,24 @@ function buildTreeData(data) {
   }));
 }
 
-function updateAvailableAtoms(current, removed) {
-  return current.map(a => {
-    if (a.value === removed.value) return { ...a, active: true };
-
-    return { ...a };
-  });
-}
-
 function buildAvailableAtoms(data, atom) {
   return data.map(a => {
     if (a.value === atom.value) return { ...a, active: false };
 
     return { ...a };
   });
+}
+
+function toggleActiveStatus(data, value) {
+  return data.map(a => {
+    if (a.value === value) return { ...a, active: !a.active };
+
+    return { ...a };
+  });
+}
+
+function sortData(data, columns) {
+  return [...arrayMultiSort(data, columns)];
 }
 
 export default function pageReducer(state = initialState, action) {
@@ -79,12 +83,21 @@ export default function pageReducer(state = initialState, action) {
 
     case ADD_ATOM_TO_TABLE: {
       const mergedData = [...state.treeData, { ...action.data }];
+      const sortColumns = [
+        ...mergedData.map(a => ({
+          key: a.atom.value,
+          direction: 'ASC',
+        })),
+        ...state.sortQuery,
+      ];
+
       return {
         ...state,
         treeData: buildTreeData(mergedData),
-        availableAtoms: buildAvailableAtoms(
+        tableData: sortData(state.sourceData, sortColumns),
+        availableAtoms: toggleActiveStatus(
           state.availableAtoms,
-          action.data.atom
+          action.data.atom.value
         ),
       };
     }
@@ -95,12 +108,6 @@ export default function pageReducer(state = initialState, action) {
         treeData: action.data,
       };
     }
-
-    case REORDER_SORTING:
-      return {
-        ...state,
-        sortData: action.data,
-      };
 
     case FILTER_TABLE_DATA:
       const filterQuery = {
@@ -119,7 +126,7 @@ export default function pageReducer(state = initialState, action) {
       return {
         ...state,
         treeData: state.treeData.filter(t => t.id !== id),
-        availableAtoms: updateAvailableAtoms(state.availableAtoms, atom),
+        availableAtoms: toggleActiveStatus(state.availableAtoms, atom.value),
       };
     }
 
@@ -137,11 +144,33 @@ export default function pageReducer(state = initialState, action) {
         manageActive: !state.manageActive,
       };
 
-    case DATA_SORT_ASC_DESC: {
-      const sortColumns = [...state.sortQuery, { ...action.data }];
+    case REORDER_SORTING:
+      const sortCOlumns = [
+        ...action.data.map(a => ({
+          key: a.atom.value,
+          direction: 'ASC',
+        })),
+        ...state.sortQuery,
+      ];
+
       return {
         ...state,
-        tableData: [...arrayMultiSort(state.sourceData, sortColumns)],
+        sortData: action.data,
+        tableData: sortData(
+          state.sourceData.filter(arrayFilter, state.filterQuery),
+          sortCOlumns
+        ),
+      };
+
+    case DATA_SORT_ASC_DESC: {
+      const { sortQuery, sourceData, filterQuery } = state;
+
+      const sortColumns = [...sortQuery, { ...action.data }];
+      const filtered = sourceData.filter(arrayFilter, filterQuery);
+
+      return {
+        ...state,
+        tableData: sortData(filtered, sortColumns),
       };
     }
 
